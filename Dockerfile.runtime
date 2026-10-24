@@ -1,0 +1,12 @@
+# Build natively on UNO Q or in a compatible linux/arm64 build environment.
+FROM gcc:14-bookworm AS build
+WORKDIR /src
+COPY firmware/ firmware/
+COPY model_data/ model_data/
+RUN g++ -std=c++17 -O3 -fno-exceptions -fno-rtti -Ifirmware -Imodel_data \
+    firmware/model_runtime.cpp firmware/head_runtime.cpp firmware/task_state.cpp \
+    firmware/classifier_service.cpp -static-libstdc++ -static-libgcc -o /classifier
+FROM debian:bookworm-slim
+COPY --from=build /classifier /usr/local/bin/classifier
+USER 65532:65532
+ENTRYPOINT ["/usr/local/bin/classifier"]

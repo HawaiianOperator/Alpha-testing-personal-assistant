@@ -1,0 +1,12 @@
+.git
+__pycache__
+**/__pycache__
+.venv
+build
+data/captures
+data/real_dataset.npz
+artifacts_gpu
+*.log
+
+.ipynb_checkpoints/
+artifacts_jupyter/

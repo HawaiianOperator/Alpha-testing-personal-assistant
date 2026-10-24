@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+.venv/
+build/
+.env
+data/captures/
+data/real_dataset.npz
+artifacts_gpu/
+*.log
+
+.ipynb_checkpoints/
+artifacts_jupyter/
+
+logs/
+
+local_settings/

@@ -1,0 +1,140 @@
+{
+  "initialization": "random; no pretrained weights",
+  "training_examples": 682,
+  "dataset_sha256": "a83e862c43262842ec43c450d6db45d801ddc9bad1895215a4eb7a817f6543a4",
+  "epochs": 400,
+  "seed": 7,
+  "parameters": 6147,
+  "training_seconds": 0.7659999999996217,
+  "fixed_evaluation_accuracy": 1.0,
+  "evaluation": [
+    {
+      "text": "Search for Radeon specifications",
+      "expected": "search",
+      "predicted": "search",
+      "probability": 0.9082539827555697,
+      "status": "ready"
+    },
+    {
+      "text": "Google Saturn's moons",
+      "expected": "search",
+      "predicted": "search",
+      "probability": 0.9847950828872083,
+      "status": "ready"
+    },
+    {
+      "text": "Please look up historical maps",
+      "expected": "search",
+      "predicted": "search",
+      "probability": 0.9438145554571964,
+      "status": "ready"
+    },
+    {
+      "text": "Find information about ocean currents",
+      "expected": "search",
+      "predicted": "search",
+      "probability": 0.9557786051130471,
+      "status": "ready"
+    },
+    {
+      "text": "Could you search Google for keyboard layouts?",
+      "expected": "search",
+      "predicted": "search",
+      "probability": 0.9987176043106396,
+      "status": "ready"
+    },
+    {
+      "text": "Calculate 17 + 29",
+      "expected": "compute",
+      "predicted": "compute",
+      "probability": 0.9966256769102306,
+      "status": "completed"
+    },
+    {
+      "text": "Compute (18 - 6) / 4",
+      "expected": "compute",
+      "predicted": "compute",
+      "probability": 0.9870591010342705,
+      "status": "completed"
+    },
+    {
+      "text": "What is 7 * 13?",
+      "expected": "compute",
+      "predicted": "compute",
+      "probability": 0.988970699534983,
+      "status": "completed"
+    },
+    {
+      "text": "Please evaluate 0.25 + 0.75",
+      "expected": "compute",
+      "predicted": "compute",
+      "probability": 0.9884593094478137,
+      "status": "completed"
+    },
+    {
+      "text": "Can you compute 49 / 7?",
+      "expected": "compute",
+      "predicted": "compute",
+      "probability": 0.9927660332850292,
+      "status": "completed"
+    },
+    {
+      "text": "generate an image of the empire state building at sunset",
+      "expected": "reject",
+      "predicted": "reject",
+      "probability": 0.9759910874055517,
+      "status": "rejected"
+    },
+    {
+      "text": "Optimize my calendar to maximize my time",
+      "expected": "reject",
+      "predicted": "reject",
+      "probability": 0.9884518963171707,
+      "status": "rejected"
+    },
+    {
+      "text": "Search for a cheap GPU and buy it",
+      "expected": "reject",
+      "predicted": "reject",
+      "probability": 0.961565134536071,
+      "status": "rejected"
+    },
+    {
+      "text": "Compute 2 + 2 then email the answer",
+      "expected": "reject",
+      "predicted": "reject",
+      "probability": 0.6588121335895095,
+      "status": "rejected"
+    },
+    {
+      "text": "Create an illustration of a skyscraper",
+      "expected": "reject",
+      "predicted": "reject",
+      "probability": 0.9483472070782746,
+      "status": "rejected"
+    },
+    {
+      "text": "Install a graphics driver",
+      "expected": "reject",
+      "predicted": "reject",
+      "probability": 0.9821829003924766,
+      "status": "rejected"
+    },
+    {
+      "text": "Write a poem for my friend",
+      "expected": "reject",
+      "predicted": "reject",
+      "probability": 0.9613337098009217,
+      "status": "rejected"
+    },
+    {
+      "text": "Move the mouse and click the blue button",
+      "expected": "reject",
+      "predicted": "reject",
+      "probability": 0.9860579059874701,
+      "status": "rejected"
+    }
+  ],
+  "thresholds": "Conservative fixed defaults, not calibrated probabilities or universal complexity detection.",
+  "scope": "Synthetic text intent classifier; no image generation, browsing results, or calendar optimization."
+}

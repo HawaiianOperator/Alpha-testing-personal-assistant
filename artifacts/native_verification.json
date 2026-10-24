@@ -1,0 +1,172 @@
+{
+  "target": "Native host C++17, not an ESP32 build",
+  "vectors_per_variant": 16,
+  "exact_logit_comparisons": 32,
+  "all_bit_exact": true,
+  "activation_arena_sizeof": 38448,
+  "records": [
+    {
+      "variant": "full",
+      "input": "image_000.raw",
+      "matched": true
+    },
+    {
+      "variant": "head",
+      "input": "features_000.raw",
+      "matched": true
+    },
+    {
+      "variant": "full",
+      "input": "image_008.raw",
+      "matched": true
+    },
+    {
+      "variant": "head",
+      "input": "features_008.raw",
+      "matched": true
+    },
+    {
+      "variant": "full",
+      "input": "image_010.raw",
+      "matched": true
+    },
+    {
+      "variant": "head",
+      "input": "features_010.raw",
+      "matched": true
+    },
+    {
+      "variant": "full",
+      "input": "image_011.raw",
+      "matched": true
+    },
+    {
+      "variant": "head",
+      "input": "features_011.raw",
+      "matched": true
+    },
+    {
+      "variant": "full",
+      "input": "image_001.raw",
+      "matched": true
+    },
+    {
+      "variant": "head",
+      "input": "features_001.raw",
+      "matched": true
+    },
+    {
+      "variant": "full",
+      "input": "image_003.raw",
+      "matched": true
+    },
+    {
+      "variant": "head",
+      "input": "features_003.raw",
+      "matched": true
+    },
+    {
+      "variant": "full",
+      "input": "image_007.raw",
+      "matched": true
+    },
+    {
+      "variant": "head",
+      "input": "features_007.raw",
+      "matched": true
+    },
+    {
+      "variant": "full",
+      "input": "image_009.raw",
+      "matched": true
+    },
+    {
+      "variant": "head",
+      "input": "features_009.raw",
+      "matched": true
+    },
+    {
+      "variant": "full",
+      "input": "image_002.raw",
+      "matched": true
+    },
+    {
+      "variant": "head",
+      "input": "features_002.raw",
+      "matched": true
+    },
+    {
+      "variant": "full",
+      "input": "image_004.raw",
+      "matched": true
+    },
+    {
+      "variant": "head",
+      "input": "features_004.raw",
+      "matched": true
+    },
+    {
+      "variant": "full",
+      "input": "image_005.raw",
+      "matched": true
+    },
+    {
+      "variant": "head",
+      "input": "features_005.raw",
+      "matched": true
+    },
+    {
+      "variant": "full",
+      "input": "image_017.raw",
+      "matched": true
+    },
+    {
+      "variant": "head",
+      "input": "features_017.raw",
+      "matched": true
+    },
+    {
+      "variant": "full",
+      "input": "image_006.raw",
+      "matched": true
+    },
+    {
+      "variant": "head",
+      "input": "features_006.raw",
+      "matched": true
+    },
+    {
+      "variant": "full",
+      "input": "image_012.raw",
+      "matched": true
+    },
+    {
+      "variant": "head",
+      "input": "features_012.raw",
+      "matched": true
+    },
+    {
+      "variant": "full",
+      "input": "image_018.raw",
+      "matched": true
+    },
+    {
+      "variant": "head",
+      "input": "features_018.raw",
+      "matched": true
+    },
+    {
+      "variant": "full",
+      "input": "image_024.raw",
+      "matched": true
+    },
+    {
+      "variant": "head",
+      "input": "features_024.raw",
+      "matched": true
+    }
+  ],
+  "limitations": [
+    "ESP32 compilation, board stack/SDK memory, latency, and Bluetooth HID remain unverified."
+  ]
+}

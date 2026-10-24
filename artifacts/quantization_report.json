@@ -1,0 +1,145 @@
+{
+  "format": "Custom per-tensor INT8 / INT32-bias / Q24-requantization, not a LiteRT file",
+  "class_names": [
+    "READY",
+    "BUSY",
+    "DONE",
+    "OTHER"
+  ],
+  "input_shape": [
+    1,
+    64,
+    64
+  ],
+  "dataset_synthetic": true,
+  "training": "Locally trained from random initialization, no pretrained weights",
+  "calibration": {
+    "activation_scales": {
+      "conv1": 0.029611712271772974,
+      "conv2": 0.48959390384944407,
+      "logits": 0.46137746375376787,
+      "input": 0.007874015748031496
+    },
+    "layers": {
+      "conv1": {
+        "weight_scale": 0.016200792132400152,
+        "input_scale": 0.007874015748031496,
+        "output_scale": 0.029611712271772974,
+        "q24_multiplier": 72275,
+        "max_abs_accumulator_bound": 82663
+      },
+      "conv2": {
+        "weight_scale": 0.04269162500937154,
+        "input_scale": 0.029611712271772974,
+        "output_scale": 0.48959390384944407,
+        "q24_multiplier": 43320,
+        "max_abs_accumulator_bound": 303058
+      },
+      "dense": {
+        "weight_scale": 0.025590742666890303,
+        "input_scale": 0.48959390384944407,
+        "output_scale": 0.46137746375376787,
+        "q24_multiplier": 455599,
+        "max_abs_accumulator_bound": 126755
+      }
+    },
+    "calibration_margin": 1.05,
+    "calibration_examples": 256
+  },
+  "float_test": {
+    "accuracy": 1.0,
+    "confusion_matrix": [
+      [
+        32,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        32,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        32,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        32
+      ]
+    ],
+    "examples": 128
+  },
+  "int8_test": {
+    "accuracy": 0.9921875,
+    "confusion_matrix": [
+      [
+        31,
+        0,
+        1,
+        0
+      ],
+      [
+        0,
+        32,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        32,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        32
+      ]
+    ],
+    "examples": 128
+  },
+  "float_int8_class_agreement": 0.9921875,
+  "raw_parameter_bytes": 1400,
+  "requantization_constant_bytes": 12,
+  "full_parameter_and_constant_payload_bytes": 1412,
+  "head_parameter_bytes": 80,
+  "head_requantization_constant_bytes": 4,
+  "head_parameter_and_constant_payload_bytes": 84,
+  "activation_arena_bytes": 38448,
+  "activation_arena_scope": "Only the two fixed activation arrays; excludes input/output copies, call stack, model descriptor, SDK, Bluetooth, UART, and other firmware memory.",
+  "head_mode": "Optional split: UNO Q Linux runs the encoder and sends 16 quantized features to the UNO Q STM32U585 MCU head. Requires matching encoder/scales and a separately implemented Bridge transport.",
+  "limitations": [
+    "Synthetic demonstration accuracy is not real desktop accuracy.",
+    "OTHER contains a synthetic X symbol; it is not a validated unknown-screen detector.",
+    "Arduino UNO Q Linux/STM32 memory, inference latency, Bridge transport, and mouse/keyboard control are not measured.",
+    "A score or margin does not guarantee action correctness."
+  ],
+  "model_int8.npz": {
+    "bytes": 3702,
+    "sha256": "58399768a0342d621438f05d5707a44cd3a818e72edc6276bff696e85bb48f7d"
+  },
+  "model_encoder.npz": {
+    "bytes": 2862,
+    "sha256": "6dd80cb8036edff8805d92450688975759ca5b798a305b5662c1d4988baad0bd"
+  },
+  "model_head.npz": {
+    "bytes": 862,
+    "sha256": "924efeedce7cdbf46a5916b6a984e919bd8f57a206c649574b4d3dea63e1c25c"
+  },
+  "hardware_target": {
+    "board": "Arduino UNO Q",
+    "variant": "4 GB RAM / 32 GB eMMC",
+    "default_runtime": "UNO Q Linux: full INT8 classifier",
+    "optional_split": "Linux encoder + STM32U585 MCU head; Bridge integration required",
+    "deployment_verified": false,
+    "memory_scope": "Linux RAM and MCU SRAM are independent; raw model/arena bytes are not total runtime usage"
+  }
+}

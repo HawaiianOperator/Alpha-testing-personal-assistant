@@ -1,0 +1,8 @@
+{
+  "tests_run": 39,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "passed": true,
+  "target": "Local development environment; no UNO Q hardware or CUDA run"
+}

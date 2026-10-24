@@ -1,0 +1,9 @@
+{
+  "target": "Native host; not UNO Q hardware",
+  "requests_in_one_process": 32,
+  "all_outputs_match": true,
+  "owned_buffers_cleared_per_request": true,
+  "malformed_inputs_rejected": 4,
+  "host_batch_seconds": 0.0930000000007567,
+  "scope": "Visual classification only; no general task planning or input execution."
+}

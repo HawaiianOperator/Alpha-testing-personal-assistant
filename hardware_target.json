@@ -1,0 +1,8 @@
+{
+  "board": "Arduino UNO Q",
+  "variant": "4 GB RAM / 32 GB eMMC",
+  "default_runtime": "UNO Q Linux: full INT8 classifier",
+  "optional_split": "Linux encoder + STM32U585 MCU head; Bridge integration required",
+  "deployment_verified": false,
+  "memory_scope": "Linux RAM and MCU SRAM are independent; raw model/arena bytes are not total runtime usage"
+}

@@ -1,0 +1,22 @@
+name: personal-assistant-uno-q
+services:
+  classifier:
+    build:
+      context: .
+      dockerfile: Dockerfile.runtime
+    stdin_open: true
+    tty: false
+    read_only: true
+    network_mode: none
+    mem_limit: 256m
+    memswap_limit: 256m
+    pids_limit: 32
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: none
+    ulimits:
+      core: 0
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=16m

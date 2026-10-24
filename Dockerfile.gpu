@@ -1,0 +1,9 @@
+# Example CUDA environment; GPU/VM/container execution is unverified here.
+ARG PYTORCH_IMAGE=pytorch/pytorch:2.7.1-cuda12.6-cudnn9-runtime
+FROM ${PYTORCH_IMAGE}
+ENV OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 PYTHONDONTWRITEBYTECODE=1
+WORKDIR /app
+COPY requirements.txt ./
+RUN python -m pip install --no-cache-dir -r requirements.txt
+COPY . .
+ENTRYPOINT ["python", "-m", "local_model.train_gpu"]

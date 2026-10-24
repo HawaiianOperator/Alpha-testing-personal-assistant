@@ -1,0 +1,9 @@
+{
+  "source": "Fresh generated UI sessions, not used for training or calibration",
+  "seed": 20261024,
+  "synthetic": true,
+  "samples": 128,
+  "float_accuracy": 1.0,
+  "int8_accuracy": 1.0,
+  "limitation": "Same synthetic renderer family; no claim of real desktop generalization."
+}

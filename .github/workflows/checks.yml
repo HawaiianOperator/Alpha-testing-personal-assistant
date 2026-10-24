@@ -1,0 +1,23 @@
+name: Model checks
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-python@v7.1.0
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r requirements.txt
+      - run: python -m unittest discover -s tests -p 'test_*.py' -v
+        env:
+          OPENBLAS_NUM_THREADS: '1'
+      - run: python scripts/verify_cpp.py
+      - run: python scripts/verify_lifecycle.py
+      - run: python scripts/verify_service.py
+      - run: docker compose -f compose.uno-q.yaml config --quiet

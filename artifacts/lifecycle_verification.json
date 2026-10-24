@@ -1,0 +1,22 @@
+{
+  "target": "Native host C++17; not an ESP32 build",
+  "all_passed": true,
+  "tests": [
+    {
+      "test": "runtime_self_test",
+      "passed": true,
+      "output": "All fixed-memory runtime checks passed. Arena: 38448 bytes."
+    },
+    {
+      "test": "head_self_test",
+      "passed": true,
+      "output": "All head-only checks passed. No activation arena required."
+    },
+    {
+      "test": "task_state_self_test",
+      "passed": true,
+      "output": "{\"task_state_bytes\":292,\"wipe_verified\":true}"
+    }
+  ],
+  "scope": "Explicit owned buffers only; no claim covers OS/SDK copies or physical remanence."
+}
