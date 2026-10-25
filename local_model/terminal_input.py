@@ -2,6 +2,8 @@
 import re
 import sys
 
+_skip_lf = False
+
 WORDS = ("michael", "rayan", "jazmine", "codex", "cs2", "counter", "strike", "list", "games", "play", "phantom", "forces", "install", "uninstall", "roblox", "open", "nvidia", "amd", "arduino", "google", "search", "calculate", "compute", "cancel", "exit")
 
 def complete(text, cursor):
@@ -22,6 +24,7 @@ def complete(text, cursor):
     return text[:match.start()] + word + text[cursor:], match.start() + len(word)
 
 def read_input(prompt):
+    global _skip_lf
     if sys.platform != "win32" or not sys.stdin.isatty() or not sys.stdout.isatty():
         return input(prompt)
     import msvcrt
@@ -31,9 +34,14 @@ def read_input(prompt):
     sys.stdout.flush()
     while True:
         key = msvcrt.getwch()
+        if _skip_lf:
+            _skip_lf = False
+            if key == "\n":
+                continue
         old = text
         old_cursor = cursor
-        if key == "\r":
+        if key in ("\r", "\n"):
+            _skip_lf = key == "\r"
             print()
             return text
         if key == "\x03":

@@ -8,7 +8,7 @@ import time
 from .human_activity import HumanActivity
 
 SETTINGS = Path(__file__).resolve().parent.parent / "local_settings" / "roblox"
-from .windows_game_input import SCAN_CODES as ALLOWED_KEYS, set_key, set_ads, set_fullscreen_key
+from .windows_game_input import SCAN_CODES as ALLOWED_KEYS, set_key, set_ads, set_fullscreen_key, set_fire, move_camera
 
 def is_roblox_window(hwnd):
     import win32gui
@@ -61,8 +61,24 @@ def release_keys():
         except OSError: pass
     try: set_ads(False)
     except OSError: pass
+    try: set_fire(False)
+    except OSError: pass
 
 def calibrate(report, game_marker=False):
+    import win32gui
+    from pywinauto import Desktop
+    # Capture the terminal window before calibration brings Roblox forward.
+    terminal_window = win32gui.GetForegroundWindow()
+    try:
+        return _calibrate(report, game_marker)
+    finally:
+        try:
+            if win32gui.IsWindow(terminal_window):
+                Desktop(backend="win32").window(handle=terminal_window).set_focus()
+        except Exception:
+            report("Calibration ended. Windows could not bring the terminal forward; press Alt+Tab to return.")
+
+def _calibrate(report, game_marker=False):
     import win32api
     import win32gui
     from PIL import ImageGrab
@@ -124,7 +140,7 @@ def phantom_marker_visible(hwnd):
     with Image.open(SETTINGS/"game-marker.png") as saved:
         return sum(ImageStat.Stat(ImageChops.difference(current,saved.convert("RGB"))).mean)/3 <= 8
 
-def roam(report, stop_event=None, deploy_first=True, bring_to_front=True):
+def roam(report, stop_event=None, deploy_first=True, bring_to_front=True, random_combat=False, movement_only=False, require_marker=True):
     if bring_to_front:
         report("Step 1: Bringing the Roblox game window to the front...")
         hwnd=bring_roblox_to_front()
@@ -135,7 +151,7 @@ def roam(report, stop_event=None, deploy_first=True, bring_to_front=True):
         error=deploy(hwnd)
         if error: return {"status":"needs_attention", "message":error}
         time.sleep(1)
-    if not phantom_marker_visible(hwnd):
+    if require_marker and not phantom_marker_visible(hwnd):
         return {"status":"needs_attention", "message":"Phantom Forces visual marker not found. While deployed, run calibrate phantom forces over a distinctive static game label. No movement started."}
     activity=HumanActivity().start()
     started=time.monotonic()
@@ -143,6 +159,7 @@ def roam(report, stop_event=None, deploy_first=True, bring_to_front=True):
     last_tick=started
     paused=False
     last_countdown=None
+    next_random_action=0
     phase=-1
     jump_release=0
     next_jump=0
@@ -154,13 +171,16 @@ def roam(report, stop_event=None, deploy_first=True, bring_to_front=True):
         set_key(name,True)
         try: time.sleep(0.08)
         finally: set_key(name,False)
-    report("Step 2: Phantom Forces marker matched. Starting the input test. Escape or focus loss stops it. No attacks.")
+    if movement_only:
+        report("Roblox is focused. Starting movement and jumping only, without calibration. Escape/focus loss stops; user input pauses for five seconds.")
+    else:
+        report("Phantom Forces marker matched. Starting the random movement/camera/firing test; no enemy recognition or target tracking. Escape or focus loss stops it." if random_combat else "Step 2: Phantom Forces marker matched. Starting the input test. Escape or focus loss stops it. No attacks.")
     try:
         while active_seconds<30:
             if activity.error:
                 reason=activity.error;break
             if stopped(): reason="Stopped by Escape, cancellation, or focus loss.";break
-            if not phantom_marker_visible(hwnd): reason="Stopped because the Phantom Forces marker disappeared.";break
+            if require_marker and not phantom_marker_visible(hwnd): reason="Stopped because the Phantom Forces marker disappeared.";break
             now=time.monotonic()
             idle=activity.idle_seconds()
             if idle<5:
@@ -184,6 +204,39 @@ def roam(report, stop_event=None, deploy_first=True, bring_to_front=True):
             active_seconds+=max(0,now-last_tick)
             last_tick=now
             elapsed=active_seconds
+            if movement_only:
+                if now>=next_random_action:
+                    release_keys()
+                    if stopped() or activity.idle_seconds()<5: continue
+                    moving=random.choice(("w","w","a","d",None))
+                    if moving:set_key(moving,True)
+                    if moving=="w" and random.random()<0.4:set_key("sprint",True)
+                    if not stopped() and activity.idle_seconds()>=5 and random.random()<0.25:tap("jump")
+                    next_random_action=now+random.uniform(0.7,2)
+                time.sleep(0.03)
+                continue
+            if random_combat:
+                if now>=next_random_action:
+                    release_keys()
+                    if stopped() or activity.idle_seconds()<5: continue
+                    tap("primary")
+                    if stopped() or activity.idle_seconds()<5: continue
+                    moving=random.choice(("w","w","a","s","d",None))
+                    if moving:set_key(moving,True)
+                    sprint=moving=="w" and random.random()<0.35
+                    if sprint:set_key("sprint",True)
+                    elif random.random()<0.4:set_ads(True)
+                    if stopped() or activity.idle_seconds()<5: continue
+                    move_camera(random.randint(-25,25),random.randint(-8,8))
+                    if random.random()<0.2:tap("jump")
+                    if random.random()<0.1:tap("lower_stance")
+                    if not stopped() and activity.idle_seconds()>=5 and random.random()<0.3:
+                        set_fire(True)
+                        try:time.sleep(0.04)
+                        finally:set_fire(False)
+                    next_random_action=now+random.uniform(0.7,2.5)
+                time.sleep(0.03)
+                continue
             new_phase=0 if elapsed<6 else 1 if elapsed<11 else 2 if elapsed<15 else 3 if elapsed<19 else 4 if elapsed<24 else 5
             if new_phase!=phase:
                 release_keys();phase=new_phase
@@ -255,6 +308,14 @@ def fullscreen_and_roam(report):
 def run_roam_command(text, progress=None):
     report=progress or (lambda message:None)
     try:
+        if text.strip().casefold() in ("auto move", "auto move roblox", "move roblox"):
+            hwnd,error=ensure_roblox_fullscreen(report)
+            if error:return {"status":"needs_attention", "message":error}
+            return roam(report,deploy_first=False,bring_to_front=False,movement_only=True,require_marker=False)
+        if text.strip().casefold() in ("combat test phantom forces", "random combat phantom forces"):
+            hwnd,error=ensure_roblox_fullscreen(report)
+            if error:return {"status":"needs_attention", "message":error}
+            return roam(report,deploy_first=False,bring_to_front=False,random_combat=True)
         if text.strip().casefold() in ("fullscreen phantom forces", "full screen phantom forces"):
             return fullscreen_and_roam(report)
         if text.strip().casefold()=="calibrate deploy": return calibrate(report)

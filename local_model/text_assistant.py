@@ -13,12 +13,16 @@ from .text_features import DIMENSIONS, LABELS, features
 from .terminal_input import read_input
 from .roblox_install import install_and_open
 from .app_manager import AppManager
-from .game_launcher import launch_game
+from .game_launcher import launch_game, open_steam
 from .memory_usage import process_memory
 from .roblox_roam import run_roam_command
 from .afk_roam import AfkRoamer
 from .codex_handoff import prepare_request
 from .manual_guide import ManualGuide
+from .text_files import TextFileAssistant
+from .roblox_visible import play_visible, diagnose_roblox
+from .roblox_games import open_pizza_place
+from .pizza_delivery import inspect_destination
 from .debug_log import create_debug_logger, record_performance
 
 class IntentModel:
@@ -118,37 +122,23 @@ def open_roblox(progress=None):
     return {"status":"launch_requested", "command":"open_roblox", "message":"Asked Windows to open Roblox."}
 
 def play_phantom_forces(progress=None):
-    report = progress or (lambda message: None)
-    """Request joining the official StyLiS Studios Phantom Forces experience."""
     if sys.platform != "win32":
         return {"status":"unavailable", "message":"Launch Phantom Forces on your Windows computer."}
     try:
-        report("Step 1/4: Checking whether Roblox is installed...")
-        if roblox_target() is None:
-            return {"status":"needs_clarification", "command":"confirm_roblox_install",
-                    "question":"Hey, it looks like Roblox is not installed. Would you like to install it, then open Phantom Forces? (yes/no)"}
-        report("Step 2/4: Searching Roblox for Phantom Forces in your browser...")
-        os.startfile("https://www.roblox.com/discover/?" + urlencode({"Keyword":"Phantom Forces"}))
-        time.sleep(3)
-        report("Step 3/4: Opening Phantom Forces by StyLiS Studios so you can see the game...")
-        os.startfile("https://www.roblox.com/games/292439477/Phantom-Forces")
-        time.sleep(3)
         import winreg
         try:
             with winreg.OpenKey(winreg.HKEY_CLASSES_ROOT, r"roblox\shell\open\command") as key:
-                registered = bool(winreg.QueryValueEx(key, "")[0])
+                registered=bool(winreg.QueryValueEx(key, "")[0])
         except OSError:
-            registered = False
-        target = "roblox://placeId=292439477" if registered else "https://www.roblox.com/games/start?placeId=292439477"
-        report("Step 4/4: I am going to play Phantom Forces. Asking Roblox to join now...")
+            registered=False
+        target="roblox://placeId=292439477" if registered else "https://www.roblox.com/games/start?placeId=292439477"
         os.startfile(target)
-        return {"status":"launch_requested", "command":"play_phantom_forces",
-                "message":"Requested Phantom Forces in Roblox. Sign in or approve the launch if prompted; joining the game has not been verified."}
+        return {"status":"launch_requested", "command":"play_phantom_forces", "message":"Asked Roblox to launch Phantom Forces directly. Sign in or approve the browser launch if prompted; joining has not been verified."}
     except OSError as error:
         return {"status":"unavailable", "message":f"Could not launch Phantom Forces: {error}"}
 
 class Session:
-    def __init__(self,model,progress=None): self.model=model; self.progress=progress; self.pending=None; self.search_suggestion=None; self.install_suggestion=False; self.apps=AppManager(progress); self.pending_game=False; self.afk=AfkRoamer(progress); self.display_name="Assistant"; self.manual=ManualGuide()
+    def __init__(self,model,progress=None): self.model=model; self.progress=progress; self.pending=None; self.search_suggestion=None; self.install_suggestion=False; self.apps=AppManager(progress); self.pending_game=False; self.afk=AfkRoamer(progress); self.display_name="Assistant"; self.manual=ManualGuide(); self.text_files=TextFileAssistant(progress)
     def accept(self,text):
         started = time.perf_counter_ns()
         result = self._accept(text)
@@ -158,22 +148,31 @@ class Session:
         result.update(process_memory())
         return result
     def _accept(self,text):
+        if text.strip().casefold() in ("pizza destination", "read pizza address"):
+            return inspect_destination()
+        if text.strip().casefold() == "debug roblox":
+            return diagnose_roblox()
         if text.strip().casefold() in ("list available features", "list avaiable features", "list features", "help"):
             return {"status":"completed", "command":"list_features", "message":
                 "Available features:\n"
                 "- Calculate: 9+10 or calculate (9+10)*2\n"
                 "- Search links: search Nvidia; a bare topic asks for confirmation\n"
                 "- Tab autocomplete: nv, ra, jaz, mi (capitalization preserved)\n"
-                "- Roblox: open roblox (offers installation if missing)\n"
+                "- Roblox category: play roblox; then enter a game name\n"
                 "- Phantom Forces: play phantom forces (also accepts phatom forces)\n"
-                "- Steam: list games; play cs2; play <installed game name>\n"
+                "- Work at a Pizza Place: play pizza place (delivery automation still needs setup)\n"
+                "- Steam category: open steam; then list games or enter an installed game name\n"
                 "- Apps: install <app>; uninstall <app> (selection and confirmation required)\n"
                 "- Manual walkthrough: guide phantom forces; manual mode on\n"
                 "- Walkthrough controls: next, repeat, back, cancel; manual mode off\n"
                 "- Game calibration: calibrate deploy; calibrate phantom forces\n"
                 "- Bounded game test: roam phantom forces (requires calibration)\n"
+                "- Movement only without calibration: auto move (30 seconds)\n"
                 "- Fullscreen movement test: fullscreen phantom forces\n"
+                "- Random movement/camera/firing test: combat test phantom forces (30 seconds)\n"
                 "- AFK movement test: afk roam on; afk roam off (Escape stops)\n"
+                "- Text files: open text files; then open <path> or new notes.txt\n"
+                "- Reopen the selected text file from this session: open last file\n"
                 "- Codex: open codex; then type a request to submit through Codex CLI\n"
                 "- Return to local commands: back to assistant\n"
                 "- Debug: timing and RAM saved in logs/debug.jsonl\n"
@@ -191,7 +190,12 @@ class Session:
         manual_result = self.manual.accept(text)
         if manual_result is not None:
             return manual_result
+        if text.strip().casefold() in ("open last file", "open last text file"):
+            return self.text_files.accept("open last file")
         if text.strip().casefold() in ("open codex", "open this chat", "switch to codex", "please open codex"):
+            if self.display_name == "text-file-assistant":
+                warning=self.text_files.leave()
+                if warning is not None:return warning
             try:
                 os.startfile("codex://threads/01a16f40-e339-7bb1-8820-af17c111497f")
             except OSError as error:
@@ -203,16 +207,79 @@ class Session:
             self.apps.cancel()
             return {"status":"launch_requested", "command":"open_codex", "message":"Asked Windows to open this Codex chat. Codex mode enabled. Requests you type here will be submitted automatically to this session through the Codex CLI, using your existing sign-in. Type back to assistant to return to local commands."}
         if text.strip().casefold() in ("back to assistant", "switch to assistant"):
+            if self.display_name == "text-file-assistant":
+                warning = self.text_files.leave()
+                if warning is not None:return warning
             self.display_name = "Assistant"
             return {"status":"completed", "message":"Local display name changed to Assistant."}
+        category_entry = text.strip().casefold()
+        file_entry = re.fullmatch(r"(?:open text file|edit text file)\s+(.+)",text.strip(),re.I)
+        new_file_entry = re.fullmatch(r"(?:new|create text file)\s+(.+)",text.strip(),re.I) if not self.text_files.collecting else None
+        if file_entry is None and not self.text_files.collecting:
+            file_entry = re.fullmatch(r"open\s+(.+\.(?:txt|text|md)\"?)",text.strip(),re.I)
+        if category_entry in ("open text files", "open text file", "text files", "text file mode") or file_entry or new_file_entry:
+            self.afk.stop()
+            self.apps.cancel()
+            self.pending=None
+            self.search_suggestion=None
+            self.install_suggestion=False
+            self.display_name="text-file-assistant"
+            if file_entry:return self.text_files.accept("open "+file_entry[1])
+            if new_file_entry:return self.text_files.accept("new "+new_file_entry[1])
+            return {"status":"needs_clarification", "command":"text_file", "question":"Text-file category opened. Type open <path> to open a file, or new notes.txt to create one. Then type your text, review with show, and save. Use open that file to open the saved file in your editor."}
+        if self.display_name == "text-file-assistant":
+            return self.text_files.accept(text)
+        if category_entry in ("play roblox", "open roblox", "switch to roblox", "roblox mode"):
+            self.display_name = "Roblox"
+            self.pending = None
+            self.search_suggestion = None
+            self.apps.cancel()
+            result = open_roblox(self.progress)
+            self.install_suggestion = result.get("command") == "confirm_roblox_install"
+            if not self.install_suggestion:
+                result["message"] = result.get("message", "") + " Roblox category: what game would you like to play? Type a game name, what can you do, or back to assistant."
+            return result
+        if category_entry in ("open steam", "play steam", "switch to steam", "steam mode"):
+            self.display_name = "Steam"
+            self.pending = None
+            self.search_suggestion = None
+            self.install_suggestion = False
+            self.apps.cancel()
+            return open_steam(self.progress)
+        if self.display_name in ("Roblox", "Steam") and not self.install_suggestion and not self.apps.pending:
+            if category_entry in ("what can you do", "what can i do", "what game", "what game to play", "what game should i play", "what do i do"):
+                return {"status":"needs_clarification", "question":
+                    "Roblox category: type a game name such as Phantom Forces, play <game>, auto move, or back to assistant." if self.display_name=="Roblox" else
+                    "Steam category: type list games to see installed titles, a game name such as cs2, or back to assistant."}
+            passthrough = re.match(r"(?:afk |calibrate |roam |fullscreen |full screen |combat test |random combat |auto move|move roblox|install |uninstall |calculate |compute |search |google |manual |slow |guide )",category_entry)
+            if not passthrough and category_entry not in ("cancel", "/cancel"):
+                if self.display_name=="Steam":
+                    if category_entry in ("list games", "show games", "my games"):
+                        return launch_game(None,self.progress)
+                    title=re.sub(r"^(?:play|run|launch|start|open)\s+", "",text.strip(),flags=re.I)
+                    return launch_game(title,self.progress)
+                if category_entry in ("list games", "show games", "my games"):
+                    return {"status":"needs_clarification", "question":"Tell me which Roblox game to search for. For example: Phantom Forces. Exact matches are required before Play is clicked."}
+                title=re.sub(r"^(?:play|run|launch|start|open)\s+", "",text.strip(),flags=re.I)
+                if title.casefold() in ("work at a pizza place", "work a pizza place", "pizza place"):
+                    return open_pizza_place()
+                if title.casefold() in ("phatom forces", "phantom forces"):
+                    return play_phantom_forces(self.progress)
+                if not title or len(title)>120:
+                    return {"status":"needs_clarification", "question":"Which Roblox game would you like to search for?"}
+                return play_visible(roblox_target,self.progress or (lambda message:None),title=title,creator=None)
         if self.display_name == "Codex" and text.strip().casefold() not in ("cancel", "/cancel"):
             return prepare_request(text, self.progress)
+        if re.fullmatch(r"(?:(?:play|open|launch)\s+)?(?:work (?:at )?a pizza place|pizza place)",text.strip(),re.I):
+            return open_pizza_place()
+        if text.strip().casefold() in ("start pizza delivery", "pizza delivery"):
+            return {"status":"needs_attention", "command":"pizza_delivery_setup", "message":"Delivery automation is not configured yet. Open Work at a Pizza Place, join Delivery, and provide a screenshot of the pickup area with a pizza destination visible. Planned behavior: wait when there are no deliveries; pick up a pizza, read its address, walk and jump to the correct house, verify delivery, return, and repeat. No delivery loop has started."}
         if text.strip().casefold() == "afk roam on":
             return self.afk.start()
         if text.strip().casefold() == "afk roam off":
             self.afk.stop()
             return {"status":"completed", "message":"AFK mode disabled. Movement stopped."}
-        if text.strip().casefold() in ("calibrate deploy", "calibrate phantom forces", "roam phantom forces", "roam phatom forces", "fullscreen phantom forces", "full screen phantom forces"):
+        if text.strip().casefold() in ("calibrate deploy", "calibrate phantom forces", "roam phantom forces", "roam phatom forces", "fullscreen phantom forces", "full screen phantom forces", "combat test phantom forces", "random combat phantom forces", "auto move", "auto move roblox", "move roblox"):
             self.apps.cancel()
             self.pending = None
             self.search_suggestion = None
@@ -312,7 +379,12 @@ def main():
     while True:
         try: text=input("") if args.jsonl else read_input("You> ")
         except (EOFError,KeyboardInterrupt): break
-        if text.strip().lower() in ("exit","quit","/exit"): break
+        if text.strip().lower() in ("exit","quit","/exit"):
+            warning=session.text_files.leave()
+            if warning is not None:
+                print(session.display_name + ">", warning["message"])
+                continue
+            break
         result=session.accept(text)
         record_performance(debug_logger, result)
         result = {k:v for k,v in result.items() if k not in ("elapsed_ms", "elapsed_seconds", "process_ram_mib", "peak_process_ram_mib")}

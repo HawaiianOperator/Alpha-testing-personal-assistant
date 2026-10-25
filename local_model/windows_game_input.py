@@ -13,7 +13,7 @@ class Payload(ctypes.Union):
 class Input(ctypes.Structure):
     _fields_=[("type",wintypes.DWORD),("payload",Payload)]
 
-SCAN_CODES={"w":0x11,"a":0x1e,"s":0x1f,"d":0x20,"jump":0x39,"sprint":0x2a,"lower_stance":0x2e,"knife":0x04}
+SCAN_CODES={"primary":0x02,"w":0x11,"a":0x1e,"s":0x1f,"d":0x20,"jump":0x39,"sprint":0x2a,"lower_stance":0x2e,"knife":0x04}
 
 def send(event):
     user=ctypes.WinDLL("user32",use_last_error=True)
@@ -38,4 +38,15 @@ def set_ads(down):
 def set_fullscreen_key(down):
     event=Input();event.type=1
     event.payload.ki=KeyboardInput(0,0x57,0x0008 | (0 if down else 0x0002),0,0)
+    send(event)
+
+
+def set_fire(down):
+    event=Input();event.type=0
+    event.payload.mi=MouseInput(0,0,0,0x0002 if down else 0x0004,0,0)
+    send(event)
+
+def move_camera(dx,dy):
+    event=Input();event.type=0
+    event.payload.mi=MouseInput(int(dx),int(dy),0,0x0001,0,0)
     send(event)

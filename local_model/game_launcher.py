@@ -72,3 +72,15 @@ def launch_game(query=None, progress=None):
         return visible_launch(root, game["id"], game["name"], report)
     except OSError as error:
         return {"status":"unavailable", "message":f"Could not launch the Steam game: {error}"}
+
+
+def open_steam(progress=None):
+    report=progress or (lambda message:None)
+    try:
+        root=steam_root()
+        if root is None:return {"status":"unavailable", "message":"Steam was not found. Type install Steam to install it."}
+        report("Opening the Steam library...")
+        subprocess.Popen([str(root/"steam.exe"),"steam://nav/games"],shell=False)
+        return {"status":"launch_requested", "command":"open_steam", "message":"Steam category opened. What game would you like to play? Type its name, list games, or back to assistant."}
+    except OSError as error:
+        return {"status":"unavailable", "message":f"Could not open Steam: {error}"}
